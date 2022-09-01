@@ -1,0 +1,24 @@
+﻿<Window x:Class="TFShandler.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TFShandler"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="785" Width="1504">
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                <GradientStop Color="#FF19B50C"/>
+                <GradientStop Color="#FF073503" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Button x:Name="Button_Load" Content="Load TFS" HorizontalAlignment="Left" Height="68" Margin="31,34,0,0" VerticalAlignment="Top" Width="163" Click="Button_Load_Click"/>
+        <Image x:Name="Fotico" HorizontalAlignment="Left" Height="699" Margin="234,34,0,0" VerticalAlignment="Top" Width="1226" Stretch="Uniform"/>
+        <Button x:Name="Button_save" Content="Save PNG" HorizontalAlignment="Left" Height="68" Margin="31,124,0,0" VerticalAlignment="Top" Width="163" Click="Button_save_Click"/>
+        <Button x:Name="Button_import" Content="Import PNG" HorizontalAlignment="Left" Height="66" Margin="31,217,0,0" VerticalAlignment="Top" Width="163" Click="Button_import_Click"/>
+        <Button x:Name="Button_savetfs" Content="Save TFS" HorizontalAlignment="Left" Height="71" Margin="31,314,0,0" VerticalAlignment="Top" Width="163" Click="Button_savetfs_Click"/>
+        <Rectangle HorizontalAlignment="Left" Height="725" Margin="234,34,0,0" Stroke="Black" VerticalAlignment="Top" Width="1260"/>
+
+    </Grid>
+</Window>
