@@ -43,132 +43,150 @@ namespace TFShandler
             }
         }
 
+        public static string appTitle = "TFS Handler v1.2";
         public int _tfsimageWidth = 0;  //uint16
         public int _tfsimageHeight = 0; //uint16
         public int _tfsimageWidthreal = 0;  //uint16
         public int _tfsimageHeightreal = 0; //uint16
         public int _tfsimagePaletteCount = 0; //uint16
         public int _tfsimagePadding = 0; //uint16
-        public Color[,] _tfsPalette = new Color[3, 256];
-        public int[,] _tfsPalettevalue = new int[3, 256];
+        public Color[,] _tfsPalette = new Color[5, 256];
+        public int[,] _tfsPalettevalue = new int[5, 256];
         public List<TFSimage> _tfsImages = new List<TFSimage>();
+        
 
         public MainWindow()
         {
             InitializeComponent();
+            this.Title = appTitle;
         }
+
+        public void Load_Image(string _fileName)
+        {
+            _imagelodaded = false;
+            _tfsImages.Clear();
+            Combobox_palletesel.Items.Clear();
+            using (FileStream fs = new FileStream(_fileName, FileMode.Open, FileAccess.Read))
+            {
+                using (BinaryReader br = new BinaryReader(fs, new ASCIIEncoding()))
+                {
+                    byte[] _reader16;
+                    byte _reader8;
+
+                    //reading initial values
+
+                    _reader16 = br.ReadBytes(2);
+                    _tfsimageWidth = BitConverter.ToUInt16(_reader16);
+                    _reader16 = br.ReadBytes(2);
+                    _tfsimageHeight = BitConverter.ToUInt16(_reader16);
+                    _reader16 = br.ReadBytes(2);
+                    _tfsimagePaletteCount = BitConverter.ToUInt16(_reader16);
+                    _reader16 = br.ReadBytes(2);
+                    _tfsimagePadding = BitConverter.ToUInt16(_reader16);
+
+                    // reading Palettes
+
+                    for (int i = 0; i < _tfsimagePaletteCount; i++)
+                    {
+                        for (int j = 0; j < 256; j++)
+                        {
+                            _reader16 = br.ReadBytes(2);
+                            int _ctemp = BitConverter.ToUInt16(_reader16);
+                            int _cAlpha = 255; //((_ctemp)%2)*255; transparency in tfs doesn't seem to work, just read alpha as true;
+                            int _cRed = (((_ctemp >> 0) & 0x1F) * 255 + 15) / 31; //red
+                            int _cGreen = (((_ctemp >> 5) & 0x1F) * 255 + 15) / 31;  //green
+                            int _cBlue = (((_ctemp >> 10) & 0x1F) * 255 + 15) / 31;  //blue
+                            _tfsPalette[i, j] = Color.FromArgb(_cAlpha, _cRed, _cGreen, _cBlue);
+                            _tfsPalettevalue[i, j] = _ctemp;
+                        }
+                        Combobox_palletesel.Items.Add(i);
+                    }
+
+                    //reading images
+
+
+                    while (br.BaseStream.Position < br.BaseStream.Length)
+                    {
+                        int _temposX = 0;
+                        int _temposY = 0;
+                        int[,] _tdata = new int[128, 128];
+                        _reader16 = br.ReadBytes(2);
+                        _temposX = BitConverter.ToUInt16(_reader16);
+                        _reader16 = br.ReadBytes(2);
+                        _temposY = BitConverter.ToUInt16(_reader16);
+                        for (int i = 0; i < 128; i++)
+                        {
+                            for (int j = 0; j < 128; j++)
+                            {
+                                _reader8 = br.ReadByte();
+                                _tdata[j, i] = _reader8;
+                            }
+                        }
+                        _tfsImages.Add(new TFSimage() { _posX = _temposX, _posY = _temposY, _idata = _tdata });
+                    }
+                }
+            }
+        }
+
+        public void Build_Image(int _paletteToUse)
+        {
+            //building image
+            int baseX = 0;
+            int baseY = 0;
+            int topeX = 0;
+            int topeY = 0;
+            foreach (TFSimage subimage in _tfsImages)
+            {
+                topeX = Math.Max(topeX, (subimage._posX * 2) + 128);
+                topeY = Math.Max(topeY, (subimage._posY) + 128);
+            }
+
+            //save true size for later
+            _tfsimageWidthreal = topeX;
+            _tfsimageHeightreal = topeY;
+
+            _imagenfinal = new Bitmap(topeX, topeY);
+            foreach (TFSimage subimage in _tfsImages)
+            {
+                baseX = subimage._posX * 2;
+                baseY = subimage._posY;
+                for (int i = 0; i < 128; i++)
+                {
+                    for (int j = 0; j < 128; j++)
+                    {
+                        _imagenfinal.SetPixel(baseX + i, baseY + j, _tfsPalette[_paletteToUse, subimage._idata[i, j]]);
+                    }
+                }
+
+            }
+
+            //draw image
+            IntPtr ip = _imagenfinal.GetHbitmap();
+            BitmapSource bs = null;
+            try
+            {
+                bs = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(ip,
+                   IntPtr.Zero, Int32Rect.Empty,
+                   System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
+            }
+            finally
+            {
+            }
+
+            _imagelodaded = true;
+            Fotico.Source = bs;
+        }
+
 
         private void Button_Load_Click(object sender, RoutedEventArgs e)
         {
-            _tfsImages.Clear();
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = ".tfs script files (*.tfs)|*.tfs";
             if (openFileDialog.ShowDialog() == true)
             {
-                using (FileStream fs = new FileStream(openFileDialog.FileName, FileMode.Open, FileAccess.Read))
-                {
-                    using (BinaryReader br = new BinaryReader(fs, new ASCIIEncoding()))
-                    {
-                        byte[] _reader16;
-                        byte _reader8;
-
-                        //reading initial values
-
-                        _reader16 = br.ReadBytes(2);
-                        _tfsimageWidth = BitConverter.ToUInt16(_reader16);
-                        _reader16 = br.ReadBytes(2);
-                        _tfsimageHeight = BitConverter.ToUInt16(_reader16);
-                        _reader16 = br.ReadBytes(2);
-                        _tfsimagePaletteCount = BitConverter.ToUInt16(_reader16);
-                        _reader16 = br.ReadBytes(2);
-                        _tfsimagePadding = BitConverter.ToUInt16(_reader16);
-
-                        // reading Palettes
-
-                        for (int i = 0; i < _tfsimagePaletteCount; i++)
-                        {
-                            for (int j = 0; j < 256; j++)
-                            {
-                                _reader16 = br.ReadBytes(2);
-                                int _ctemp= BitConverter.ToUInt16(_reader16);
-                                int _cAlpha = 255; //((_ctemp)%2)*255; transparency in tfs doesn't work, just read alpha as true;
-                                int _cRed = (((_ctemp>>0)& 0x1F) * 255+15)/31; //red
-                                int _cGreen = (((_ctemp >> 5) & 0x1F) * 255 + 15) / 31;  //green
-                                int _cBlue = (((_ctemp >> 10) & 0x1F) * 255 + 15) / 31;  //blue
-                                _tfsPalette[i, j]= Color.FromArgb(_cAlpha, _cRed, _cGreen, _cBlue);
-                                _tfsPalettevalue[i, j] = _ctemp;
-                            }
-                        }
-
-                        //reading images
-                        
-
-                        while (br.BaseStream.Position < br.BaseStream.Length)
-                        {
-                            int _temposX = 0;
-                            int _temposY = 0;
-                            int[,] _tdata = new int[128, 128];
-                            _reader16 = br.ReadBytes(2);
-                            _temposX= BitConverter.ToUInt16(_reader16);
-                            _reader16 = br.ReadBytes(2);
-                            _temposY = BitConverter.ToUInt16(_reader16);
-                            for (int i = 0; i < 128; i++)
-                            {
-                                for(int j = 0; j < 128; j++)
-                                {
-                                    _reader8 = br.ReadByte();
-                                    _tdata[j, i] = _reader8;
-                                }    
-                            }
-                            _tfsImages.Add(new TFSimage() {_posX=_temposX , _posY=_temposY , _idata=_tdata});
-                        }
-
-                        //building image
-                        int baseX = 0;
-                        int baseY = 0;
-                        int topeX = 0;
-                        int topeY = 0;
-                        foreach (TFSimage subimage in _tfsImages)
-                        {
-                            topeX = Math.Max(topeX, (subimage._posX * 2)+128);
-                            topeY = Math.Max(topeY, (subimage._posY) + 128);
-                        }
-
-                        //save true size for later
-                        _tfsimageWidthreal = topeX;  
-                        _tfsimageHeightreal = topeY;
-
-                        _imagenfinal = new Bitmap(topeX, topeY);
-                        foreach(TFSimage subimage in _tfsImages)
-                        {
-                            baseX = subimage._posX*2;
-                            baseY = subimage._posY;
-                            for (int i = 0; i < 128; i++)
-                            {
-                                for (int j = 0; j < 128; j++)
-                                {
-                                    _imagenfinal.SetPixel(baseX + i, baseY + j, _tfsPalette[0, subimage._idata[i, j]]);
-                                }
-                            }
-
-                        }
-
-                        //draw image
-                        IntPtr ip = _imagenfinal.GetHbitmap();
-                        BitmapSource bs = null;
-                        try
-                        {
-                            bs = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(ip,
-                               IntPtr.Zero, Int32Rect.Empty,
-                               System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
-                        }
-                        finally { 
-                        }
-                        
-                        _imagelodaded = true;
-                        Fotico.Source = bs;
-                    }
-                }
+                this.Title = appTitle + " - " + openFileDialog.FileName.Substring(openFileDialog.FileName.LastIndexOf("\\")+1);
+                Load_Image(openFileDialog.FileName);
+                Build_Image(0);
             }
         }
 
@@ -455,6 +473,14 @@ namespace TFShandler
 
             else { 
                 MessageBox.Show( "You need to load a TFS file first.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Combobox_palletesel_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_imagelodaded)
+            {
+                Build_Image(Combobox_palletesel.SelectedIndex);
             }
         }
     }

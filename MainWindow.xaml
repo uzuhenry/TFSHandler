@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TFShandler"
         mc:Ignorable="d"
-        Title="MainWindow" Height="785" Width="1504">
+        Title="TFSHandler v1.2" Height="838" Width="1574">
     <Grid>
         <Grid.Background>
             <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -19,6 +19,8 @@
         <Button x:Name="Button_import" Content="Import PNG" HorizontalAlignment="Left" Height="66" Margin="31,217,0,0" VerticalAlignment="Top" Width="163" Click="Button_import_Click"/>
         <Button x:Name="Button_savetfs" Content="Save TFS" HorizontalAlignment="Left" Height="71" Margin="31,314,0,0" VerticalAlignment="Top" Width="163" Click="Button_savetfs_Click"/>
         <Rectangle HorizontalAlignment="Left" Height="725" Margin="234,34,0,0" Stroke="Black" VerticalAlignment="Top" Width="1260"/>
+        <TextBlock HorizontalAlignment="Left" Height="30" Margin="31,411,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="142" FontSize="18" FontWeight="Bold"><Run Language="es-es" Text="Palette Select:"/></TextBlock>
+        <ComboBox x:Name="Combobox_palletesel" HorizontalAlignment="Left" Height="39" Margin="52,449,0,0" VerticalAlignment="Top" Width="60" SelectionChanged="Combobox_palletesel_SelectionChanged" FontWeight="Bold" FontSize="16"/>
 
     </Grid>
 </Window>
