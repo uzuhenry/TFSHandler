@@ -2,6 +2,7 @@
 This is a tool to handle images in TFS files, used by the game Digimon World for the PSX.
 With this, you can export pngs from the tfs files, import png, and save your own tfs files.
 For now, it has a limited usage for simplicity, advanced options will be added later.
+For instructions on how to use this tool, check [the documentation](https://github.com/uzuhenry/DigimonWorld-Translation-set)
 
 # How to use
 1.- Execute TFSHandler and load a TFS file of your choice.
@@ -27,7 +28,3 @@ For now, it has a limited usage for simplicity, advanced options will be added l
 -The DMC(Digimon Modding Community) discord: https://discord.gg/cb5AuxU6su
 
 
-# Proyected updates:
--Preview different palettes
--Export the whole palette along with the png file
--Palette editing 
